@@ -13,8 +13,13 @@
 #include <ESP8266HTTPClient.h>
 
 #define USE_SERIAL Serial
+#define PWM_PIN 5
 
 ESP8266WiFiMulti WiFiMulti;
+
+
+const char* ssid = "Crushinator-2.4";
+const char* password = "teamthre";
 
 void setup() {
 
@@ -31,7 +36,7 @@ void setup() {
         delay(1000);
     }
 
-    WiFiMulti.addAP("SSID", "PASSWORD");
+    WiFiMulti.addAP(ssid, password);
 
 }
 
@@ -43,8 +48,7 @@ void loop() {
 
         USE_SERIAL.print("[HTTP] begin...\n");
         // configure traged server and url
-        //http.begin("192.168.1.12", 443, "/test.html", true, "7a 9c f4 db 40 d3 62 5a 6e 21 bc 5c cc 66 c8 3e a1 45 59 38"); //HTTPS
-        http.begin("192.168.1.12", 80, "/test.html"); //HTTP
+        http.begin("192.168.1.117", 5000, "/data-request/a/b"); //HTTP
 
         USE_SERIAL.print("[HTTP] GET...\n");
         // start connection and send HTTP header
@@ -57,6 +61,10 @@ void loop() {
             if(httpCode == 200) {
                 String payload = http.getString();
                 USE_SERIAL.println(payload);
+                int cmd = payload.toInt();
+                if (cmd >= 0 && cmd < 1024) {
+                  analogWrite(PWM_PIN, cmd);
+                }
             }
         } else {
             USE_SERIAL.print("[HTTP] GET... failed, no connection or no HTTP server\n");
